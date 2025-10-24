@@ -1,8 +1,8 @@
 import numpy as np
 import astropy.units as u
-from astropy.coordinates import SkyCoord as SC
 import astropy.constants as con
 from astropy.cosmology import FlatLambdaCDM
+import matplotlib.pyplot as plt
 cosmo = FlatLambdaCDM(H0=70.0, Om0=0.30) 
 
 
@@ -68,3 +68,28 @@ def redshift2lines(z):
     for line in LINES.keys():
         dt[line] = LINES[line] / (1.+z)
     return dt
+
+def gauss(x, *p0):
+    mu = p0[0]
+    sigma=p0[1]
+    N=p0[2]
+    return 10**N*1./np.sqrt(2*np.pi*sigma**2) * np.exp(-(x-mu)**2/(2*sigma**2))
+
+def plot_map(mapi):
+    '''convenience function to plot a map extracted from a cube (using correct transposition/axes)'''
+    _,ax = plt.subplots()
+    sc = ax.imshow(mapi.T, origin='lower')
+    ax.colorbar(sc)
+    plt.show()
+
+def distance_array(map, center):
+    '''create array of euclidean distance between array elements and "center" pixel (in numpy format, i.e., y, x)
+    
+    center=(px,py)
+    map[py,px] = center_val
+    '''
+    x = np.arange(map.shape[0]) 
+    y = np.arange(map.shape[1])
+    Y,X = np.meshgrid(y,x)
+    dist = np.sqrt((X-center[1])**2 + (Y-center[0])**2)
+    return dist

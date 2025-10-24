@@ -1,0 +1,6 @@
+astropy
+numpy
+sjmm_util
+interferopy
+scipy
+matplotlib
