@@ -2,5 +2,4 @@
 
 Functions for working with ALMA data and extracting spectral lines.
 
-
-![](docs/images/CDFS_11_103.191_0.02GHz.pdf)
+<img src="docs/images/docs/images/CDFS_11_103.191_0.02GHz.pdf" height="300px" title="example line detection"/>
