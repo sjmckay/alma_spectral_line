@@ -1,17 +1,11 @@
 import numpy as np
 import astropy.units as u
-from astropy.coordinates import SkyCoord as SC
-from astropy.table import Table, QTable
-
-from astropy.wcs import wcs
-from astropy.nddata import Cutout2D
-
 from scipy.stats import bootstrap
-import scipy.stats as st
-
+from astropy.coordinates import SkyCoord as SC
+import astropy.constants as con
 from astropy.cosmology import FlatLambdaCDM
 cosmo = FlatLambdaCDM(H0=70.0, Om0=0.30) 
-
+# 
 
 LINES = {
         'CO(14-13)': 1611.79,'CO(13-12)': 1496.92,'CO(12-11)': 1382.00,'CO(11-10)': 1267.01,'CO(10-9)': 1151.99, 
