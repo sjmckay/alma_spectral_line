@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "alma_spectral_line"
-version = "0.0.2"
+version = "0.0.3"
 readme = "README.md"
 
 dependencies = [
 "sjmm_util",
 "astropy",
 "numpy",
-"interferopy"
+"interferopy",
 "pandas"
 ]

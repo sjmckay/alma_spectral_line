@@ -24,8 +24,8 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 from contextlib import redirect_stdout
 
-from sjmm_util import rebin, find_map_peak
-from .utils import gaussian_kernel, distance_array
+from sjmm_util.general_utils import rebin, find_map_peak
+from .utils import distance_array
 
 def spw_band_from_path(path=None,cub=None):
     '''
@@ -132,7 +132,7 @@ def compute_rms(map, exclude_r=None, mask=None, sigma=3.0, maxiters=5,copy=True)
         exclusion_mask |= mask
     # Apply exclusion mask
     data = nmap[~exclusion_mask]
-    # Drop NaNs and zeros (if they’re not meaningful)
+    # Drop NaNs and zeros 
     data = data[~np.isnan(data)]
     data = data[data != 0]
     n_total = len(data)
@@ -142,7 +142,7 @@ def compute_rms(map, exclude_r=None, mask=None, sigma=3.0, maxiters=5,copy=True)
     return rms, nsamples
     
     
-def flux_snr_2D(linemap, wcsi, coord=None, rms_r = 10, search_r = 1, cont=None):
+def flux_snr_2D(linemap, wcsi, coord=None, rms_r = 10, search_r = 1):
     '''get location and flux of peak in line map'''
     ppas = np.abs(1.0/wcsi.pixel_scale_matrix[0,0]/3600)
     center_cut = wcsi.world_to_pixel(coord)
@@ -150,7 +150,6 @@ def flux_snr_2D(linemap, wcsi, coord=None, rms_r = 10, search_r = 1, cont=None):
     mask = dist>search_r*ppas
     py,px = find_map_peak(linemap,mask=mask) 
     peakflux = linemap[py,px] # double check order of axes
-    if cont is not None: peakflux-=cont
     rmsmask = dist>rms_r*ppas
     rms,nsamples = compute_rms(linemap,exclude_r=2.0*ppas, mask = rmsmask)
     snr = peakflux/rms
@@ -178,7 +177,6 @@ def get_err(cub_pbcor, r=0.,ra=None,dec=None, pbim=None, pbspec=None):
         npix = np.pi*(r/cub_pbcor.pixsize)**2
         err *= np.sqrt(npix / cub_pbcor.beamvol)
     return err
-
 
 
 def gaussian_kernel(sigma, radius, norm):
@@ -225,7 +223,7 @@ def get_spec_err_ndarray(im_pbcor, w, ra,dec, pbim=None, pbspec=None):
     return spectrum, err
 
 def get_spectrum(cub, w=None, coord=None, r=0.5, pbim=None, pbspec=None):
-    '''wrapper function for measuring a spectrum and err in a circular aperture'''
+    '''wrapper function for measuring a spectrum and err in a circular aperture, using interferopy.cube.Cube'''
     if coord is not None: ra,dec=coord.ra, coord.dec
     else: ra, dec = None, None
     if not hasattr(cub,'im'): #if not dealing with an interferopy.Cube
@@ -238,8 +236,7 @@ def get_spectrum(cub, w=None, coord=None, r=0.5, pbim=None, pbspec=None):
     return spectrum, err
 
 
-
-def filter_and_id_peaks(run_name, coord, im, pbspec, pbim, freqs, w, sig, dv, rms_r=10, verbose=False,norm='avg'):
+def filter_and_id_peaks(coord, im, pbspec, pbim, freqs, w, sig, dv, rms_r=10, norm='avg'):
     """Perform Gaussian filtering of cube and identify peak"""
     if not type(w) == wcs.WCS:
         warnings.filterwarnings("ignore", category=FITSFixedWarning)
@@ -257,9 +254,8 @@ def filter_and_id_peaks(run_name, coord, im, pbspec, pbim, freqs, w, sig, dv, rm
     except ValueError:
         peak = 0
     linefreemask = np.abs(np.arange(len(spectrum))-peak)>4*sig
-    cont = np.nanmedian(spectrum[linefreemask])*dv
     updated_coord, (px, py), peakflux, rms, snr, _ = flux_snr_2D(smoothed[:,:,peak]*dv, w, coord=coord, 
-                                                               rms_r = rms_r, search_r = 0.5, cont=None)
+                                                               rms_r = rms_r, search_r = 0.5)
     #measure flux and rms
     rms /= pbspec
     peakflux /= pbspec[peak]
@@ -278,7 +274,7 @@ def filter_and_id_peaks(run_name, coord, im, pbspec, pbim, freqs, w, sig, dv, rm
     return peak_info
     
 
-def filtered_peaks(run_name, source, coord, cub, pbspec, pbim, rms_r=10, saveout=False,verbose=False, 
+def filtered_peaks(run_name, source, coord, cub, pbspec, pbim, rms_r=10, verbose=False, 
                    parallel=False,norm='avg'):
     """Copy a spectral cube and smooth it with varying gaussian filters, testing for the highest significance peak"""
     spw, band, folder = spw_band_from_path(cub.filename)
