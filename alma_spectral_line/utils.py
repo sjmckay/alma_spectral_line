@@ -70,9 +70,7 @@ def redshift2lines(z):
     return dt
 
 def gauss(x, *p0):
-    mu = p0[0]
-    sigma=p0[1]
-    N=p0[2]
+    mu, sigma, N = p0
     return 10**N*1./np.sqrt(2*np.pi*sigma**2) * np.exp(-(x-mu)**2/(2*sigma**2))
 
 def plot_map(mapi):
